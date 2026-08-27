@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Myth or Fact? / Mythe ou fait ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FAF7FF;
+    --card: #FFFFFF;
+    --accent: #A9B8FF;
+    --accent-deep: #7C8FE8;
+    --pink: #FFD1DC;
+    --pink-deep: #E86C8A;
+    --mint: #C3F0CA;
+    --mint-deep: #4FA968;
+    --text: #322C52;
+    --text-muted: #736C93;
+    --border: #E6DFFF;
+    --shadow: 0 10px 30px rgba(70, 55, 130, 0.08);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: radial-gradient(circle at 10% 0%, #F1ECFF 0%, var(--bg) 45%), var(--bg);
+    font-family: 'Work Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+
+  .wrap{
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .title-block h1{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(28px, 5vw, 38px);
+    margin: 0 0 6px 0;
+    line-height: 1.1;
+  }
+
+  .title-block p{
+    margin:0;
+    color: var(--text-muted);
+    font-size: 15px;
+    max-width: 46ch;
+  }
+
+  .lang-toggle{
+    display:flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+  }
+
+  .lang-toggle button{
+    border:none;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+
+  .lang-toggle button.active{
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .lang-toggle button:focus-visible, button:focus-visible{
+    outline: 3px solid var(--accent-deep);
+    outline-offset: 2px;
+  }
+
+  .progress{
+    display:flex;
+    gap:6px;
+    margin-bottom: 24px;
+  }
+
+  .progress .dot{
+    flex:1;
+    height:6px;
+    border-radius: 4px;
+    background: var(--border);
+    transition: background .3s ease;
+  }
+
+  .progress .dot.done{ background: var(--accent-deep); }
+  .progress .dot.current{ background: var(--accent); }
+
+  .card{
+    position: relative;
+    background: var(--card);
+    border-radius: 24px;
+    padding: 36px 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .eyebrow{
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .question{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(20px, 3.6vw, 25px);
+    line-height: 1.35;
+    margin: 0 0 28px 0;
+  }
+
+  .choices{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+
+  .choice-btn{
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 18px 12px;
+    border-radius: 16px;
+    border: 2px solid var(--border);
+    background: #FBFAFF;
+    color: var(--text);
+    cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+
+  .choice-btn:hover:not(:disabled){
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .choice-btn:disabled{ cursor: default; }
+
+  .choice-btn.pick-myth.selected{ border-color: var(--pink-deep); background: var(--pink); }
+  .choice-btn.pick-fact.selected{ border-color: var(--accent-deep); background: #E7ECFF; }
+  .choice-btn.reveal-correct{ border-color: var(--mint-deep); background: var(--mint); }
+  .choice-btn.dim{ opacity: .5; }
+
+  .stamp{
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 3px solid var(--pink-deep);
+    color: var(--pink-deep);
+    transform: rotate(8deg);
+    opacity: 0;
+    transition: opacity .25s ease, transform .25s ease;
+    background: #FFF7F9;
+    pointer-events:none;
+  }
+
+  .stamp.show{ opacity: 1; transform: rotate(8deg) scale(1); }
+  .stamp.correct-pick{ border-color: var(--mint-deep); color: var(--mint-deep); background: #F3FFF5; }
+
+  .explain{
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--text);
+    display:none;
+  }
+
+  .explain.show{ display:block; }
+
+  .explain .label{
+    font-weight: 700;
+    color: var(--accent-deep);
+    margin-bottom: 6px;
+    display:block;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .nav-row{
+    display:flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .next-btn{
+    font-family:'Work Sans', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    background: var(--accent-deep);
+    color:#fff;
+    border:none;
+    padding: 13px 26px;
+    border-radius: 999px;
+    cursor:pointer;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .25s ease, transform .25s ease, background .2s ease;
+  }
+
+  .next-btn.show{ opacity: 1; transform: translateY(0); }
+  .next-btn:hover{ background: #6577D6; }
+
+  .result-card{ text-align:center; }
+  .result-score{
+    font-family:'Fraunces', serif;
+    font-size: 56px;
+    font-weight: 600;
+    margin: 6px 0 4px;
+    color: var(--accent-deep);
+  }
+  .result-msg{ color: var(--text-muted); font-size: 15.5px; max-width: 44ch; margin: 0 auto 26px; line-height:1.6; }
+  .restart-btn{
+    font-family:'Work Sans', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    background: var(--accent-deep);
+    color:#fff;
+    border:none;
+    padding: 13px 28px;
+    border-radius: 999px;
+    cursor:pointer;
+  }
+  .restart-btn:hover{ background:#6577D6; }
+
+  footer{
+    text-align:center;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 480px){
+    .choices{ grid-template-columns: 1fr; }
+    .card{ padding: 26px 20px; }
+    .stamp{ top: 18px; right: 18px; font-size: 12px; padding: 6px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="title-block">
+      <h1 id="pageTitle">Myth or Fact?</h1>
+      <p id="pageSubtitle">Ten popular beliefs about teaching and learning. Pick your answer before you read why.</p>
+    </div>
+    <div class="lang-toggle">
+      <button id="btnEN" class="active" onclick="setLang('en')">EN</button>
+      <button id="btnFR" onclick="setLang('fr')">FR</button>
+    </div>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="quizArea"></div>
+
+  <footer id="footerNote">For discussion and self-reflection — not a formal assessment.</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+{
+  en:{ q:"Teaching should be matched to each student's preferred learning style (visual, auditory, kinesthetic) to improve learning outcomes.",
+       explain:"Controlled studies have repeatedly failed to find evidence that matching instruction to a student's self-reported \"learning style\" improves results. What actually helps is matching the format to the content itself — a diagram for spatial relationships, spoken explanation for a process — regardless of who's in the room." },
+  fr:{ q:"Il faut adapter l'enseignement au style d'apprentissage préféré de chaque étudiant (visuel, auditif, kinesthésique) pour améliorer les résultats.",
+       explain:"Les études contrôlées ne trouvent pas de preuve qu'adapter l'enseignement au « style d'apprentissage » déclaré d'un étudiant améliore ses résultats. Ce qui aide vraiment, c'est d'adapter le format au contenu lui-même — un schéma pour des relations spatiales, une explication orale pour un processus — peu importe qui se trouve dans la salle." }
+},
+{
+  en:{ q:"Some people are \"left-brained\" (logical) and others are \"right-brained\" (creative), and this determines how they think and learn.",
+       explain:"Brain imaging shows both hemispheres are active together for nearly every cognitive task, including language, logic, and creativity. No healthy brain relies predominantly on one side — the two hemispheres are constantly cross-talking through the corpus callosum." },
+  fr:{ q:"Certaines personnes sont « cerveau gauche » (logiques) et d'autres « cerveau droit » (créatives), ce qui détermine leur façon de penser et d'apprendre.",
+       explain:"L'imagerie cérébrale montre que les deux hémisphères sont actifs ensemble pour presque toutes les tâches cognitives, y compris le langage, la logique et la créativité. Aucun cerveau sain ne repose principalement sur un seul côté : les deux hémisphères communiquent constamment via le corps calleux." }
+},
+{
+  en:{ q:"The average human attention span has dropped to about 8 seconds — shorter than a goldfish's.",
+       explain:"This statistic has no traceable scientific source and misunderstands what attention is. Attention isn't a single fixed number; it varies enormously with task, interest, and context — students can sustain focus far longer on material that's structured and engaging." },
+  fr:{ q:"La durée moyenne d'attention humaine serait tombée à environ 8 secondes — moins que celle d'un poisson rouge.",
+       explain:"Cette statistique ne repose sur aucune source scientifique vérifiable et repose sur une mauvaise compréhension de l'attention. Ce n'est pas un chiffre fixe : elle varie énormément selon la tâche, l'intérêt et le contexte — les étudiants peuvent rester concentrés bien plus longtemps sur un contenu structuré et engageant." }
+},
+{
+  en:{ q:"Intelligence is a fixed trait you're born with and can't be meaningfully changed through effort or teaching.",
+       explain:"Cognitive skills are shaped by both biology and experience. Effective instruction, deliberate practice, and effort measurably improve performance over time. Treating intelligence as fixed can itself discourage the effort that would have improved it." },
+  fr:{ q:"L'intelligence est un trait fixe, inné, qu'on ne peut pas vraiment changer par l'effort ou l'enseignement.",
+       explain:"Les capacités cognitives sont façonnées à la fois par la biologie et l'expérience. Un enseignement efficace, une pratique délibérée et l'effort améliorent mesurablement la performance dans le temps. Considérer l'intelligence comme figée peut d'ailleurs décourager l'effort qui l'aurait justement améliorée." }
+},
+{
+  en:{ q:"Multitasking during a lecture (e.g., taking notes while browsing on a laptop) helps students absorb more.",
+       explain:"What feels like multitasking is really rapid task-switching, and each switch carries a measurable cognitive cost. Studies on laptop use in class consistently find reduced note quality, comprehension, and retention when students split attention this way." },
+  fr:{ q:"Faire plusieurs choses à la fois pendant un cours (prendre des notes tout en naviguant sur un ordinateur) aide les étudiants à mieux assimiler la matière.",
+       explain:"Ce qui ressemble à du multitâche est en réalité un changement rapide de tâche, et chaque bascule a un coût cognitif mesurable. Les études sur l'usage d'ordinateurs portables en classe montrent systématiquement une baisse de la qualité des notes, de la compréhension et de la mémorisation." }
+},
+{
+  en:{ q:"Innate talent matters more than sustained practice and persistence in determining who becomes an expert.",
+       explain:"Research on skill acquisition finds that structured, sustained deliberate practice explains a large share of the gap between novices and experts — often more than any measurable initial talent. Talent isn't irrelevant, but persistence and practice quality tend to dominate the outcome." },
+  fr:{ q:"Le talent inné compte plus que la pratique soutenue et la persévérance pour devenir un expert.",
+       explain:"Les recherches sur l'acquisition des compétences montrent qu'une pratique délibérée, structurée et soutenue explique une grande partie de l'écart entre novices et experts — souvent plus que tout talent initial mesurable. Le talent n'est pas sans importance, mais la persévérance et la qualité de la pratique tendent à dominer le résultat." }
+},
+{
+  en:{ q:"Gardner's theory shows there are 8+ distinct, measurable intelligences, and instructors should design separate teaching methods for each one.",
+       explain:"The theory is popular but lacks strong empirical validation as distinct, independently measurable intelligences. General cognitive ability remains the best-supported model, and there's no solid evidence that tailoring instruction to a student's supposed \"intelligence type\" improves learning." },
+  fr:{ q:"La théorie de Gardner montre qu'il existe 8 intelligences distinctes et mesurables, et que les enseignants devraient concevoir une méthode différente pour chacune.",
+       explain:"Cette théorie est populaire mais manque de validation empirique solide en tant qu'intelligences distinctes et mesurables indépendamment. L'intelligence générale reste le modèle le mieux étayé, et rien ne prouve solidement qu'adapter l'enseignement au « type d'intelligence » supposé d'un étudiant améliore l'apprentissage." }
+},
+{
+  en:{ q:"The \"Learning Pyramid\" (we remember 10% of what we read, 20% of what we hear... 90% of what we do) is based on solid research.",
+       explain:"This pyramid, often attributed to a training institute, has no traceable research origin. The suspiciously round percentages don't come from any real study and the chart has been thoroughly debunked — though the underlying idea that active engagement helps retention has other, better support." },
+  fr:{ q:"La « pyramide de l'apprentissage » (on retient 10 % de ce qu'on lit, 20 % de ce qu'on entend... 90 % de ce qu'on fait) repose sur des recherches solides.",
+       explain:"Cette pyramide, souvent attribuée à un institut de formation, n'a aucune origine scientifique vérifiable. Les pourcentages, suspicieusement ronds, ne proviennent d'aucune étude réelle et ce schéma a été largement démystifié — même si l'idée sous-jacente, que l'engagement actif aide la mémorisation, est appuyée par d'autres recherches plus solides." }
+},
+{
+  en:{ q:"Humans only use about 10% of their brains — the rest is untapped potential.",
+       explain:"Brain imaging shows nearly every region is active over the course of a day, and damage to almost any area of the brain causes some loss of function. There's no dormant 90% waiting to be unlocked." },
+  fr:{ q:"Les humains n'utilisent qu'environ 10 % de leur cerveau — le reste serait un potentiel inexploité.",
+       explain:"L'imagerie cérébrale montre que presque toutes les régions du cerveau sont actives au cours d'une journée, et des lésions dans presque n'importe quelle zone entraînent une perte de fonction. Il n'existe pas de 90 % dormant en attente d'être « débloqué »." }
+},
+{
+  en:{ q:"\"Digital natives\" — students who grew up with technology — learn fundamentally differently and need entirely new teaching methods.",
+       explain:"Comfort using devices doesn't equate to a different underlying cognitive profile. Research finds little evidence for a distinct generational learning mechanism; fundamentals like attention, memory, and the value of retrieval practice apply just as much to students who grew up online." },
+  fr:{ q:"Les « natifs du numérique » — étudiants ayant grandi avec la technologie — apprennent fondamentalement différemment et ont besoin de méthodes d'enseignement entièrement nouvelles.",
+       explain:"Être à l'aise avec les appareils numériques ne signifie pas avoir un profil cognitif différent. Les recherches trouvent peu de preuves d'un mécanisme d'apprentissage propre à une génération : les fondamentaux — attention, mémoire, valeur de la pratique de récupération — s'appliquent tout autant aux étudiants qui ont grandi en ligne." }
+}
+];
+
+let lang = 'en';
+let current = 0;
+let score = 0;
+let answered = false;
+
+const T = {
+  en:{ title:"Myth or Fact?", subtitle:"Ten popular beliefs about teaching and learning. Pick your answer before you read why.",
+       myth:"Myth", fact:"Fact", next:"Next question", finish:"See results",
+       correctStamp:"Correctly spotted", wrongStamp:"It's a myth", labelWhy:"Why",
+       resultTitle: n => `${n} / 10`, resultMsgHigh:"Sharp eye — you're already skeptical of most of these classroom myths.",
+       resultMsgMid:"A solid start — a few of these are worth reflecting on.", resultMsgLow:"These myths are stickier than most people think — even among educators.",
+       restart:"Try again", footer:"For discussion and self-reflection — not a formal assessment." },
+  fr:{ title:"Mythe ou fait ?", subtitle:"Dix croyances répandues sur l'enseignement et l'apprentissage. Choisissez votre réponse avant de lire l'explication.",
+       myth:"Mythe", fact:"Fait", next:"Question suivante", finish:"Voir les résultats",
+       correctStamp:"Bien repéré", wrongStamp:"C'est un mythe", labelWhy:"Pourquoi",
+       resultTitle: n => `${n} / 10`, resultMsgHigh:"Bon œil — vous êtes déjà sceptique face à la plupart de ces mythes.",
+       resultMsgMid:"Un bon départ — certains de ces mythes méritent réflexion.", resultMsgLow:"Ces mythes sont plus tenaces qu'on ne le pense — même chez les enseignants.",
+       restart:"Recommencer", footer:"Pour la discussion et la réflexion — pas une évaluation formelle." }
+};
+
+function setLang(l){
+  lang = l;
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.getElementById('btnFR').classList.toggle('active', l==='fr');
+  document.documentElement.lang = l;
+  document.getElementById('pageTitle').textContent = T[l].title;
+  document.getElementById('pageSubtitle').textContent = T[l].subtitle;
+  document.getElementById('footerNote').textContent = T[l].footer;
+  render();
+}
+
+function renderProgress(){
+  const el = document.getElementById('progress');
+  el.innerHTML = '';
+  for(let i=0;i<QUESTIONS.length;i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < current ? ' done' : (i === current ? ' current' : ''));
+    el.appendChild(d);
+  }
+}
+
+function render(){
+  renderProgress();
+  const area = document.getElementById('quizArea');
+
+  if(current >= QUESTIONS.length){
+    const pct = score;
+    const msg = pct >= 8 ? T[lang].resultMsgHigh : (pct >= 5 ? T[lang].resultMsgMid : T[lang].resultMsgLow);
+    area.innerHTML = `
+      <div class="card result-card">
+        <div class="eyebrow">${lang==='en' ? 'RESULTS' : 'RÉSULTATS'}</div>
+        <div class="result-score">${T[lang].resultTitle(score)}</div>
+        <p class="result-msg">${msg}</p>
+        <button class="restart-btn" onclick="restart()">${T[lang].restart}</button>
+      </div>`;
+    return;
+  }
+
+  const q = QUESTIONS[current][lang];
+  answered = false;
+
+  area.innerHTML = `
+    <div class="card">
+      <div class="stamp" id="stamp"></div>
+      <div class="eyebrow">${lang==='en' ? `QUESTION ${current+1} OF 10` : `QUESTION ${current+1} SUR 10`}</div>
+      <p class="question">${q.q}</p>
+      <div class="choices">
+        <button class="choice-btn pick-myth" id="btnMyth" onclick="pick('myth')">${T[lang].myth}</button>
+        <button class="choice-btn pick-fact" id="btnFact" onclick="pick('fact')">${T[lang].fact}</button>
+      </div>
+      <div class="explain" id="explain">
+        <span class="label">${T[lang].labelWhy}</span>
+        ${q.explain}
+      </div>
+      <div class="nav-row">
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">${current === QUESTIONS.length-1 ? T[lang].finish : T[lang].next}</button>
+      </div>
+    </div>`;
+}
+
+function pick(choice){
+  if(answered) return;
+  answered = true;
+
+  const mythBtn = document.getElementById('btnMyth');
+  const factBtn = document.getElementById('btnFact');
+  const stamp = document.getElementById('stamp');
+  const explain = document.getElementById('explain');
+  const nextBtn = document.getElementById('nextBtn');
+
+  mythBtn.disabled = true;
+  factBtn.disabled = true;
+
+  if(choice === 'myth'){
+    score++;
+    mythBtn.classList.add('selected', 'reveal-correct');
+    factBtn.classList.add('dim');
+    stamp.textContent = T[lang].correctStamp;
+    stamp.classList.add('show', 'correct-pick');
+  } else {
+    factBtn.classList.add('selected');
+    mythBtn.classList.add('reveal-correct');
+    stamp.textContent = T[lang].wrongStamp;
+    stamp.classList.add('show');
+  }
+
+  explain.classList.add('show');
+  nextBtn.classList.add('show');
+}
+
+function nextQuestion(){
+  current++;
+  render();
+}
+
+function restart(){
+  current = 0;
+  score = 0;
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
